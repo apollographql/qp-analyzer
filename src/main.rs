@@ -19,12 +19,12 @@ use tracing_subscriber::prelude::*;
 
 #[derive(clap::Parser)]
 enum Command {
-    /// List all override condition labels in the supergraph schema
+    /// List all override condition labels in supergraph schema
     ListOverrides {
         /// Path to the supergraph schema file.
         schema: PathBuf,
     },
-    /// Plan all possible query plans for a given query and schema
+    /// Plan all possible query plans for supergraph schema and query
     Plan {
         /// Path to the supergraph schema file.
         schema: PathBuf,
@@ -52,29 +52,13 @@ struct QueryPlannerArgs {
     pub(crate) experimental_type_conditioned_fetching: bool,
 
     /// Sets a limit to the number of generated query plans.
-    /// The planning process generates many different query plans as it
-    /// explores the graph, and the list can grow large. By using this
-    /// limit, we prevent that growth and still get a valid query plan,
-    /// but it may not be the optimal one.
-    ///
-    /// The default limit is set to 10000, but it may change in the future
     #[arg(long, default_value_t = 10_000)]
     pub(crate) experimental_plans_limit: u32,
 
-    /// Before creating query plans, for each path of fields in the query we compute all the
-    /// possible options to traverse that path via the subgraphs. Multiple options can arise because
-    /// fields in the path can be provided by multiple subgraphs, and abstract types (i.e. unions
-    /// and interfaces) returned by fields sometimes require the query planner to traverse through
-    /// each constituent object type. The number of options generated in this computation can grow
-    /// large if the schema or query are sufficiently complex, and that will increase the time spent
-    /// planning.
-    ///
-    /// This config allows specifying a per-path limit to the number of options considered. If any
-    /// path's options exceeds this limit, query planning will abort and the operation will fail.
-    ///
-    /// The default value is None, which specifies no limit.
-    #[arg(long)]
-    pub(crate) experimental_paths_limit: Option<u32>,
+    /// Specify a per-path limit to the number of options considered.
+    /// No limit is applied by default. Also, if set to `0`, it is treated as no limit.
+    #[arg(long, default_value_t = 0)]
+    pub(crate) experimental_paths_limit: u32,
 }
 
 impl From<QueryPlannerArgs> for QueryPlannerConfig {
@@ -82,6 +66,11 @@ impl From<QueryPlannerArgs> for QueryPlannerConfig {
         let max_evaluated_plans = NonZeroU32::new(args.experimental_plans_limit)
             // If experimental_plans_limit is zero; use our default.
             .unwrap_or(NonZeroU32::new(10_000).unwrap());
+        let paths_limit = if args.experimental_paths_limit == 0 {
+            None
+        } else {
+            Some(args.experimental_paths_limit)
+        };
 
         QueryPlannerConfig {
             // `subgraph_graphql_validation` is false in Router, but we may consider enabling it.
@@ -93,7 +82,7 @@ impl From<QueryPlannerArgs> for QueryPlannerConfig {
             type_conditioned_fetching: args.experimental_type_conditioned_fetching,
             debug: QueryPlannerDebugConfig {
                 max_evaluated_plans,
-                paths_limit: args.experimental_paths_limit,
+                paths_limit,
             },
         }
     }
