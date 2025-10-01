@@ -73,6 +73,7 @@ struct QueryPlannerArgs {
     /// path's options exceeds this limit, query planning will abort and the operation will fail.
     ///
     /// The default value is None, which specifies no limit.
+    #[arg(long)]
     pub(crate) experimental_paths_limit: Option<u32>,
 }
 
