@@ -30,6 +30,10 @@ enum Command {
         schema: PathBuf,
         /// Path to the query file, `-` for stdin.
         query: PathBuf,
+        /// Output results in JSON format.
+        #[arg(long)]
+        json: bool,
+        /// Query planner arguments
         #[command(flatten)]
         planner_args: QueryPlannerArgs,
     },
@@ -97,7 +101,8 @@ fn main() {
             schema,
             query,
             planner_args,
-        } => cmd_build_all_plans(&schema, &query, planner_args, true),
+            json,
+        } => cmd_build_all_plans(&schema, &query, planner_args, json),
     };
     if let Err(e) = result {
         eprintln!("Error: {e}");
