@@ -162,6 +162,8 @@ Arguments:
   [OVERRIDE_CONDITIONS]...  Override conditions labels
 
 Options:
+      --override-all
+          Override all conditions (equivalent to specifying all labels)
       --json
           Output results in JSON format
       --disable-generate-query-fragments
@@ -176,9 +178,24 @@ Options:
           Specify a per-path limit to the number of options considered. No limit is applied by default. Also, if set to `0`, it is treated as no limit [default: 0]
 ```
 
+Notes on `OVERRIDE_CONDITIONS`:
+
+* All arguments following the `<QUERY>` argument are considered override labels.
+* If one or more override labels are provided, `@override` directives with the specified labels
+  will take effect.
+* If no labels are provided, none of the `@override` directives will take effect.
+* If `--override-all` option is used, it is equivalent to specifying all override labels as
+`OVERRIDE_CONDITIONS` arguments.
+
 #### Example
 
-Command line:
+Command line examples:
+```
+% qp-analyzer plan-one example/supergraph.graphql example/op.graphql 'percent(50)'
+```
 ```
 % qp-analyzer plan-one example/supergraph.graphql example/op.graphql 'percent(50)' 'percent(90)'
+```
+```
+% qp-analyzer plan-one example/supergraph.graphql example/op.graphql --override-all
 ```

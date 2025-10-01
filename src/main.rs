@@ -45,6 +45,9 @@ enum Command {
         query: PathBuf,
         /// Override conditions labels
         override_conditions: Vec<String>,
+        /// Override all conditions (equivalent to specifying all labels)
+        #[arg(long)]
+        override_all: bool,
         /// Output results in JSON format.
         #[arg(long)]
         json: bool,
@@ -117,8 +120,16 @@ fn main() {
             query,
             planner_args,
             override_conditions,
+            override_all,
             json,
-        } => cmd_build_one_plan(&schema, &query, planner_args, override_conditions, json),
+        } => cmd_build_one_plan(
+            &schema,
+            &query,
+            planner_args,
+            override_conditions,
+            override_all,
+            json,
+        ),
         Command::Plan {
             schema,
             query,
@@ -211,6 +222,7 @@ fn cmd_build_one_plan(
     query_path: &Path,
     planner_args: QueryPlannerArgs,
     override_conditions: Vec<String>,
+    override_all: bool,
     json_output: bool,
 ) -> Result<(), AnyError> {
     let supergraph = load_supergraph_file(schema_path)?;
@@ -225,14 +237,18 @@ fn cmd_build_one_plan(
     let override_labels = planner.override_condition_labels();
     tracing::info!("Override condition labels: {override_labels:?}");
 
-    // Check override_conditions
-    for cond in &override_conditions {
-        if !override_labels.contains(cond.as_str()) {
-            return Err(AnyError::msg(format!(
-                "Unknown override condition label: {cond}. Available labels: {override_labels:?}"
-            )));
+    check_override_conditions(override_labels, &override_conditions)?;
+
+    let override_conditions = if override_all {
+        if !override_conditions.is_empty() {
+            return Err(AnyError::msg(
+                "`override_all` cannot be used with specific override conditions",
+            ));
         }
-    }
+        override_labels.iter().map(|s| s.to_string()).collect()
+    } else {
+        override_conditions
+    };
 
     let qp_opts = QueryPlanOptions {
         override_conditions: override_conditions.clone(),
@@ -252,6 +268,32 @@ fn cmd_build_one_plan(
         };
         println!("{}", serde_json::to_string_pretty(&json).unwrap());
     }
+    Ok(())
+}
+
+fn check_override_conditions(
+    override_labels: &IndexSet<Arc<str>>,
+    override_conditions: &[String],
+) -> Result<(), AnyError> {
+    // Check invalid labels
+    for cond in override_conditions {
+        if !override_labels.contains(cond.as_str()) {
+            return Err(AnyError::msg(format!(
+                "Unknown override condition label: {cond}. Available labels: {override_labels:?}"
+            )));
+        }
+    }
+
+    // Check duplicate labels
+    let mut seen = IndexSet::default();
+    for cond in override_conditions {
+        if !seen.insert(cond) {
+            return Err(AnyError::msg(format!(
+                "Duplicate override condition label: {cond}"
+            )));
+        }
+    }
+
     Ok(())
 }
 
