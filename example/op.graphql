@@ -1,0 +1,7 @@
+#!operation
+{
+    test {
+        data1
+        data2
+    }
+}

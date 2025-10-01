@@ -1,0 +1,42 @@
+# common
+extend schema
+  @link(
+    url: "https://specs.apollo.dev/federation/v2.7"
+    import: ["@key", "@shareable", "@override"]
+  )
+
+#--------------------------------------------------------------------
+#!subgraph entrypoint
+
+type T @key(fields: "id") {
+    id: ID!
+}
+
+type Query {
+    test: T!
+}
+
+#--------------------------------------------------------------------
+#!subgraph monolith
+
+type T @key(fields: "id") {
+    id: ID!
+    data1: Int!
+    data2: Int!
+}
+
+#--------------------------------------------------------------------
+#!subgraph A
+
+type T @key(fields: "id") {
+    id: ID!
+    data1: Int! @override(from: "monolith", label: "percent(50)")
+}
+
+#--------------------------------------------------------------------
+#!subgraph B
+
+type T @key(fields: "id") {
+    id: ID!
+    data2: Int! @override(from: "monolith", label: "percent(90)")
+}
