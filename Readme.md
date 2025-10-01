@@ -39,8 +39,9 @@ The `qp-analyzer` binary will be produced under `target/release` directory.
 Usage: qp-analyzer <COMMAND>
 
 Commands:
-  list-overrides  List all override condition labels in the supergraph schema
-  plan            Plan all possible query plans for a given supergraph schema and query
+  list-overrides  List all override condition labels in supergraph schema
+  plan            Plan all possible query plans for supergraph schema and query
+  plan-one        Plan a query plan for supergraph schema, query and override conditions
   help            Print this message or the help of the given subcommand(s)
 
 Options:
@@ -142,4 +143,38 @@ QueryPlan {
 Override Combination #1: ["percent(50)"]
 -----------------------------------------------------------------------
 ...
+```
+
+### `plan-one` command
+
+Plans a query plan for supergraph schema, query and override conditions.
+
+```
+Usage: qp-analyzer plan-one [OPTIONS] <SCHEMA> <QUERY> [OVERRIDE_CONDITIONS]...
+
+Arguments:
+  <SCHEMA>                  Path to the supergraph schema file
+  <QUERY>                   Path to the query file, `-` for stdin
+  [OVERRIDE_CONDITIONS]...  Override conditions labels
+
+Options:
+      --json
+          Output results in JSON format
+      --disable-generate-query-fragments
+          Disable optimization of subgraph fetch queries using fragments
+      --disable-defer-support
+          Disable defer support
+      --experimental-type-conditioned-fetching
+          Enable type conditioned fetching
+      --experimental-plans-limit <EXPERIMENTAL_PLANS_LIMIT>
+          Sets a limit to the number of generated query plans [default: 10000]
+      --experimental-paths-limit <EXPERIMENTAL_PATHS_LIMIT>
+          Specify a per-path limit to the number of options considered. No limit is applied by default. Also, if set to `0`, it is treated as no limit [default: 0]
+```
+
+#### Example
+
+Command line:
+```
+% qp-analyzer plan-one example/supergraph.graphql example/op.graphql 'percent(50)' 'percent(90)'
 ```

@@ -37,6 +37,21 @@ enum Command {
         #[command(flatten)]
         planner_args: QueryPlannerArgs,
     },
+    /// Plan a query plan for supergraph schema, query and override conditions
+    PlanOne {
+        /// Path to the supergraph schema file.
+        schema: PathBuf,
+        /// Path to the query file, `-` for stdin.
+        query: PathBuf,
+        /// Override conditions labels
+        override_conditions: Vec<String>,
+        /// Output results in JSON format.
+        #[arg(long)]
+        json: bool,
+        /// Query planner arguments
+        #[command(flatten)]
+        planner_args: QueryPlannerArgs,
+    },
 }
 
 /// Query-planner-related arguments
@@ -97,6 +112,13 @@ fn main() {
     let cmd = Command::parse();
     let result = match cmd {
         Command::ListOverrides { schema } => cmd_overrides(&schema),
+        Command::PlanOne {
+            schema,
+            query,
+            planner_args,
+            override_conditions,
+            json,
+        } => cmd_build_one_plan(&schema, &query, planner_args, override_conditions, json),
         Command::Plan {
             schema,
             query,
@@ -143,6 +165,11 @@ fn cmd_build_all_plans(
     let config = QueryPlannerConfig::from(planner_args);
     let planner = QueryPlanner::new(&supergraph, config)?;
 
+    let query = read_input(query_path);
+    let query_doc =
+        ExecutableDocument::parse_and_validate(planner.api_schema().schema(), query, query_path)
+            .map_err(FederationError::from)?;
+
     let override_labels = planner.override_condition_labels();
     tracing::info!("Override condition labels: {override_labels:?}");
 
@@ -150,10 +177,6 @@ fn cmd_build_all_plans(
     let override_combinations = generate_all_possible_override_conditions(override_labels);
     tracing::info!("Override condition combinations: {override_combinations:#?}");
 
-    let query = read_input(query_path);
-    let query_doc =
-        ExecutableDocument::parse_and_validate(planner.api_schema().schema(), query, query_path)
-            .map_err(FederationError::from)?;
     let mut json = Vec::new();
     for (i, override_conditions) in override_combinations.into_iter().enumerate() {
         if !json_output {
@@ -178,6 +201,55 @@ fn cmd_build_all_plans(
         });
     }
     if json_output {
+        println!("{}", serde_json::to_string_pretty(&json).unwrap());
+    }
+    Ok(())
+}
+
+fn cmd_build_one_plan(
+    schema_path: &Path,
+    query_path: &Path,
+    planner_args: QueryPlannerArgs,
+    override_conditions: Vec<String>,
+    json_output: bool,
+) -> Result<(), AnyError> {
+    let supergraph = load_supergraph_file(schema_path)?;
+    let config = QueryPlannerConfig::from(planner_args);
+    let planner = QueryPlanner::new(&supergraph, config)?;
+
+    let query = read_input(query_path);
+    let query_doc =
+        ExecutableDocument::parse_and_validate(planner.api_schema().schema(), query, query_path)
+            .map_err(FederationError::from)?;
+
+    let override_labels = planner.override_condition_labels();
+    tracing::info!("Override condition labels: {override_labels:?}");
+
+    // Check override_conditions
+    for cond in &override_conditions {
+        if !override_labels.contains(cond.as_str()) {
+            return Err(AnyError::msg(format!(
+                "Unknown override condition label: {cond}. Available labels: {override_labels:?}"
+            )));
+        }
+    }
+
+    let qp_opts = QueryPlanOptions {
+        override_conditions: override_conditions.clone(),
+        ..Default::default()
+    };
+    let query_plan = planner.build_query_plan(&query_doc, None, qp_opts)?;
+    if !json_output {
+        println!("{query_plan}\n");
+    }
+    if json_output {
+        let json = QueryPlanResult {
+            query_plan_config: QueryPlanConfig {
+                override_conditions,
+            },
+            query_plan_display: format!("{query_plan}"),
+            experimental_query_plan_serialized: query_plan,
+        };
         println!("{}", serde_json::to_string_pretty(&json).unwrap());
     }
     Ok(())
