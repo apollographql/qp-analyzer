@@ -1,0 +1,20 @@
+[package]
+name = "qp-analyzer-wasm"
+version = "0.1.0"
+edition = "2024"
+license = "Elastic-2.0"
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+# Apollo dependencies
+qp-analyzer = { path = "../analyzer" }
+# apollo-compiler = { workspace = true }
+# apollo-federation = { workspace = true }
+
+# Other dependencies
+wasm-bindgen = "0.2"
+
+# Feature overrides of indirect dependency
+getrandom = { version = "0.3", features = ["wasm_js"] }
