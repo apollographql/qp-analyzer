@@ -1,0 +1,7 @@
+{
+  "type": "module",
+  "scripts": {
+    "test": "node index.test.js",
+    "build-and-test": "wasm-pack build --scope apollo --out-name qp-analyzer --target nodejs --dev && node index.test.js"
+  }
+}

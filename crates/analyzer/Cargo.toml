@@ -1,0 +1,14 @@
+[package]
+name = "qp-analyzer"
+version = "0.1.0"
+edition = "2024"
+license = "Elastic-2.0"
+
+[dependencies]
+# Apollo dependencies
+apollo-compiler = { workspace = true }
+apollo-federation = { workspace = true }
+
+# Other dependencies
+tracing = { workspace = true }
+serde = { workspace = true }
