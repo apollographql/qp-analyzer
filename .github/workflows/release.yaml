@@ -41,7 +41,7 @@ jobs:
             crates/wasm/pkg
 
   publish-npm:
-    needs: [create-release, build-wasm]
+    needs: build-wasm
     runs-on: ubuntu-latest
     steps:
       - name: Download WASM artifact
