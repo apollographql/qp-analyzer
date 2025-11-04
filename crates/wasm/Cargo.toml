@@ -5,6 +5,8 @@ repository = "https://github.com/apollographql/qp-analyzer"
 version = "0.1.0"
 edition = "2024"
 license = "Elastic-2.0"
+readme = "README.md"
+keywords = ["graphql", "apollo", "federation", "query-planner"]
 
 [lib]
 crate-type = ["cdylib"]
