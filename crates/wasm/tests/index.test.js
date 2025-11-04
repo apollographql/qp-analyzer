@@ -24,7 +24,7 @@ test("override_labels works", async () => {
 });
 
 test("build_all_plans works", async () => {
-    const plans = analyzer.build_all_plans(supergraph, query, query_path, {}, false);
+    const plans = analyzer.build_all_plans(supergraph, query, query_path, {});
     assert.deepEqual(plans.length, 4);
     assert.deepEqual(plans[1].query_plan_display,
 `QueryPlan {
@@ -75,7 +75,7 @@ test("build_all_plans works", async () => {
 });
 
 test("build_one_plan works", async () => {
-    const plan = analyzer.build_one_plan(supergraph, query, query_path, {}, ["percent(90)"], false);
+    const plan = analyzer.build_one_plan(supergraph, query, query_path, {}, false, ["percent(90)"]);
     assert.deepEqual(plan.query_plan_display,
 `QueryPlan {
   Sequence {

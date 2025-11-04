@@ -80,18 +80,12 @@ pub fn build_all_plans(
     query_str: &str,
     query_path: &str,
     planner_args: JsValue,
-    json_output: bool,
 ) -> Result<Vec<JsValue>, String> {
     let qp_args: QueryPlannerArgs =
         serde_wasm_bindgen::from_value(planner_args).map_err(|e| e.to_string())?;
-    let plans = qp_analyzer::build_all_plans(
-        schema_str,
-        query_str,
-        query_path,
-        qp_args.into(),
-        json_output,
-    )
-    .map_err(|e| e.to_string())?;
+    let plans =
+        qp_analyzer::build_all_plans(schema_str, query_str, query_path, qp_args.into(), false)
+            .map_err(|e| e.to_string())?;
 
     let js_values = plans
         .into_iter()
@@ -106,8 +100,8 @@ pub fn build_one_plan(
     query_str: &str,
     query_path: &str,
     planner_args: JsValue,
-    override_conditions: Vec<String>,
     override_all: bool,
+    override_conditions: Option<Vec<String>>,
 ) -> Result<JsValue, String> {
     let qp_args: QueryPlannerArgs =
         serde_wasm_bindgen::from_value(planner_args).map_err(|e| e.to_string())?;
@@ -116,8 +110,8 @@ pub fn build_one_plan(
         query_str,
         query_path,
         qp_args.into(),
-        override_conditions,
         override_all,
+        override_conditions,
     )
     .map_err(|e| e.to_string())?;
 

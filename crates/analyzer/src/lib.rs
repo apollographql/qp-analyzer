@@ -90,8 +90,8 @@ pub fn build_one_plan(
     query_str: &str,
     query_path: impl AsRef<Path>,
     config: QueryPlannerConfig,
-    override_conditions: Vec<String>,
     override_all: bool,
+    override_conditions: Option<Vec<String>>,
 ) -> Result<QueryPlanResult, FederationError> {
     let supergraph = apollo_federation::Supergraph::new_with_router_specs(schema_str)?;
     let planner = QueryPlanner::new(&supergraph, config)?;
@@ -106,16 +106,17 @@ pub fn build_one_plan(
     let override_labels = planner.override_condition_labels();
     tracing::info!("Override condition labels: {override_labels:?}");
 
-    check_override_conditions(override_labels, &override_conditions)?;
-
     let override_conditions = if override_all {
-        if !override_conditions.is_empty() {
+        if override_conditions.is_some() {
             return Err(internal_error!(
                 "`override_all` cannot be used with specific override conditions",
             ));
         }
         override_labels.iter().map(|s| s.to_string()).collect()
     } else {
+        let override_conditions = override_conditions
+            .ok_or_else(|| internal_error!("No override conditions were provided"))?;
+        check_override_conditions(override_labels, &override_conditions)?;
         override_conditions
     };
 

@@ -187,13 +187,18 @@ fn cmd_build_one_plan(
     override_all: bool,
     json_output: bool,
 ) -> Result<(), AnyError> {
+    let override_conditions = if override_all && override_conditions.is_empty() {
+        None
+    } else {
+        Some(override_conditions)
+    };
     let result = build_one_plan(
         &read_input(schema_path),
         &read_input(query_path),
         query_path,
         planner_args.into(),
-        override_conditions.clone(),
         override_all,
+        override_conditions,
     )?;
     if json_output {
         println!("{}", serde_json::to_string_pretty(&result).unwrap());
