@@ -29,8 +29,8 @@ jobs:
       - name: Build WASM package
         run: wasm-pack build --target nodejs --scope apollo --out-name qp-analyzer
         working-directory: crates/wasm
-      - name: Fix package name
-        run: node scripts/fix-package-name.js
+      - name: Fix package json
+        run: node scripts/fix-package-json.js
         working-directory: crates/wasm
       - name: Run tests
         run: npm test
