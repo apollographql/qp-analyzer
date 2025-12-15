@@ -123,3 +123,10 @@ test("build_one_plan works", async () => {
 }`
     );
 });
+
+test("compare_plans works", async () => {
+    const plan1 = analyzer.build_one_plan(supergraph, query, query_path, {}, false, []);
+    const plan2 = analyzer.build_one_plan(supergraph, query, query_path, {}, false, ["percent(50)"]);
+    const comparison = analyzer.compare_plans(supergraph, plan1, plan2);
+    assert.notEqual(comparison, undefined, 'comparison should have a difference');
+});

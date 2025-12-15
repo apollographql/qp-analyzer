@@ -10,7 +10,7 @@ use apollo_federation::query_plan::query_planner::QueryPlanOptions;
 use apollo_federation::query_plan::query_planner::QueryPlanner;
 use apollo_federation::query_plan::query_planner::QueryPlannerConfig;
 
-#[derive(serde::Serialize)]
+#[derive(serde::Serialize, serde::Deserialize)]
 pub struct QueryPlanResult {
     /// The configuration affecting the generation of this query plan
     pub query_plan_config: QueryPlanConfig,
@@ -22,7 +22,7 @@ pub struct QueryPlanResult {
     pub experimental_query_plan_serialized: QueryPlan,
 }
 
-#[derive(serde::Serialize)]
+#[derive(serde::Serialize, serde::Deserialize)]
 pub struct QueryPlanConfig {
     pub override_conditions: Vec<String>,
 }
@@ -186,4 +186,38 @@ fn check_override_conditions(
     }
 
     Ok(())
+}
+
+#[derive(serde::Serialize, serde::Deserialize)]
+pub struct QueryPlanDifference {
+    pub full_diff: String,
+    pub diff_description: String,
+}
+
+/// Returns the difference between x and y query plans.
+/// - If they are identical, returns None.
+pub fn compare_query_plans(
+    schema_str: &str,
+    x: &QueryPlanResult,
+    y: &QueryPlanResult,
+) -> Option<QueryPlanDifference> {
+    let result = qp_compare::plan_matches(
+        &x.experimental_query_plan_serialized,
+        &y.experimental_query_plan_serialized,
+    );
+    match result {
+        Ok(_) => None,
+        Err(diff) => {
+            let full_diff = qp_compare::diff_plan(
+                schema_str,
+                &x.experimental_query_plan_serialized,
+                &y.experimental_query_plan_serialized,
+            );
+            let diff_description = diff.description();
+            Some(QueryPlanDifference {
+                full_diff,
+                diff_description,
+            })
+        }
+    }
 }

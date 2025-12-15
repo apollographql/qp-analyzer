@@ -9,6 +9,7 @@ license = "Elastic-2.0"
 qp-analyzer = { path = "../analyzer" }
 apollo-compiler = { workspace = true }
 apollo-federation = { workspace = true }
+qp-compare = { workspace = true }
 
 # Other dependencies
 anyhow = "1.0"

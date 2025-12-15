@@ -5,6 +5,8 @@ use serde::Deserialize;
 use std::num::NonZeroU32;
 use wasm_bindgen::prelude::*;
 
+use qp_analyzer::QueryPlanResult;
+use qp_analyzer::compare_query_plans;
 use qp_analyzer::get_override_labels;
 
 /// Query planner arguments
@@ -117,4 +119,18 @@ pub fn build_one_plan(
 
     let js_value = serde_wasm_bindgen::to_value(&plan).unwrap();
     Ok(js_value)
+}
+
+#[wasm_bindgen]
+pub fn compare_plans(
+    schema_str: &str,
+    plan_value_1: JsValue,
+    plan_value_2: JsValue,
+) -> Result<JsValue, String> {
+    let plan1: QueryPlanResult =
+        serde_wasm_bindgen::from_value(plan_value_1).map_err(|e| e.to_string())?;
+    let plan2: QueryPlanResult =
+        serde_wasm_bindgen::from_value(plan_value_2).map_err(|e| e.to_string())?;
+    let result = compare_query_plans(schema_str, &plan1, &plan2);
+    serde_wasm_bindgen::to_value(&result).map_err(|e| e.to_string())
 }
