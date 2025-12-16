@@ -11,6 +11,7 @@ permissions:
 
 jobs:
   release-wasm-npm:
+    name: Release NPM package
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -18,23 +19,31 @@ jobs:
         with:
           node-version: '22'
           registry-url: 'https://registry.npmjs.org'
+        env:
+            NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
       - name: Install Rust
         uses: actions-rs/toolchain@v1
         with:
           toolchain: stable
           profile: minimal
           override: true
+
       - name: Install wasm-pack
         run: cargo install wasm-pack
+
       - name: Build WASM package
         run: wasm-pack build --target nodejs --scope apollo --out-name qp-analyzer
         working-directory: crates/wasm
+
       - name: Fix package json
         run: node scripts/fix-package-json.js
         working-directory: crates/wasm
+
       - name: Run tests
         run: npm test
         working-directory: crates/wasm/tests
+
       - name: Publish to npm
         run: npm publish --access public --provenance
         working-directory: crates/wasm/pkg
