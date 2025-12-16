@@ -16,7 +16,7 @@ Commands:
   override-labels      List override labels in a schema
   plan-all             Build all possible query plans
   plan-one             Build a single optimized query plan
-  compare-plans        Compare two query plans
+  compare-plans        Compare two query plan JSON files (produced using the plan-one command)
   help                 Show this help message
 
 Common planner options:

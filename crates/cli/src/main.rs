@@ -55,7 +55,7 @@ enum Command {
         #[command(flatten)]
         planner_args: QueryPlannerArgs,
     },
-    /// Compare two query plans
+    /// Compare two query plan JSON files (produced using the plan-one command)
     ComparePlans {
         /// Path to the supergraph schema file.
         schema: PathBuf,
