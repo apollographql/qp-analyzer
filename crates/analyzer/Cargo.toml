@@ -8,6 +8,7 @@ license = "Elastic-2.0"
 # Apollo dependencies
 apollo-compiler = { workspace = true }
 apollo-federation = { workspace = true }
+qp-compare = { workspace = true }
 
 # Other dependencies
 tracing = { workspace = true }

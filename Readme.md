@@ -50,6 +50,7 @@ Commands:
   list-overrides  List all override condition labels in supergraph schema
   plan            Plan all possible query plans for supergraph schema and query
   plan-one        Plan a query plan for supergraph schema, query and override conditions
+  compare-plans   Compare two query plan JSON files (produced using the plan-one command)
   help            Print this message or the help of the given subcommand(s)
 
 Options:
@@ -202,4 +203,37 @@ Command line examples:
 ```
 ```
 % qp-analyzer plan-one example/supergraph.graphql example/op.graphql --override-all
+```
+
+### `compare-plans` command
+
+Compare two query plan JSON files (produced using the plan-one command)
+
+```
+Usage: qp-analyzer-cli compare-plans <SCHEMA> <PLAN1> <PLAN2>
+
+Arguments:
+  <SCHEMA>  Path to the supergraph schema file
+  <PLAN1>   First query plan result JSON file path
+  <PLAN2>   Second query plan result JSON file path
+```
+
+#### Example
+
+Create one plan and store its JSON output
+
+```
+% qp-analyzer plan-one example/supergraph.graphql example/op.graphql --json > plan1.json
+```
+
+Create another plan and store its JSON output
+
+```
+% qp-analyzer plan-one example/supergraph.graphql example/op.graphql 'percent(50)' --json > plan2.json
+```
+
+Compare the two JSON files
+
+```
+% qp-analyzer compare-plans example/supergraph.graphql plan1.json plan2.json
 ```

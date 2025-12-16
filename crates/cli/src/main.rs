@@ -1,8 +1,11 @@
 use anyhow::Error as AnyError;
+use anyhow::anyhow;
 use apollo_federation::query_plan::query_planner::QueryPlanIncrementalDeliveryConfig;
 use apollo_federation::query_plan::query_planner::QueryPlannerConfig;
 use apollo_federation::query_plan::query_planner::QueryPlannerDebugConfig;
 use clap::Parser;
+use qp_analyzer::QueryPlanDifference;
+use qp_analyzer::QueryPlanResult;
 use std::fs;
 use std::io;
 use std::num::NonZeroU32;
@@ -51,6 +54,15 @@ enum Command {
         /// Query planner arguments
         #[command(flatten)]
         planner_args: QueryPlannerArgs,
+    },
+    /// Compare two query plan JSON files (produced using the plan-one command)
+    ComparePlans {
+        /// Path to the supergraph schema file.
+        schema: PathBuf,
+        /// First query plan result JSON file path.
+        plan1: PathBuf,
+        /// Second query plan result JSON file path.
+        plan2: PathBuf,
     },
 }
 
@@ -133,6 +145,11 @@ fn main() {
             planner_args,
             json,
         } => cmd_build_all_plans(&schema, &query, planner_args, json),
+        Command::ComparePlans {
+            schema,
+            plan1,
+            plan2,
+        } => cmd_compare_plans(&schema, &plan1, &plan2),
     };
     if let Err(e) = result {
         eprintln!("Error: {e}");
@@ -213,5 +230,26 @@ fn read_input(input_path: &Path) -> String {
         io::read_to_string(io::stdin()).unwrap()
     } else {
         fs::read_to_string(input_path).unwrap()
+    }
+}
+
+fn cmd_compare_plans(schema_path: &Path, path_x: &Path, path_y: &Path) -> Result<(), AnyError> {
+    let schema_str = fs::read_to_string(schema_path)?;
+    let plan_x: QueryPlanResult = serde_json::from_str(&fs::read_to_string(path_x)?)?;
+    let plan_y: QueryPlanResult = serde_json::from_str(&fs::read_to_string(path_y)?)?;
+    let result = qp_analyzer::compare_query_plans(&schema_str, &plan_x, &plan_y);
+    match result {
+        None => {
+            eprintln!("The two query plans are identical.");
+            Ok(())
+        }
+        Some(QueryPlanDifference {
+            full_diff,
+            diff_description,
+        }) => {
+            eprintln!("\nFull diff:\n{}", full_diff);
+            eprintln!("{}", diff_description);
+            Err(anyhow!("The two query plans are different"))
+        }
     }
 }

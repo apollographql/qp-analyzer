@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-const { build_all_plans, build_one_plan, override_labels } = require('./qp-analyzer.js');
+const { build_all_plans, build_one_plan, override_labels, compare_plans } = require('./qp-analyzer.js');
 const fs = require('fs');
 const path = require('path');
 
@@ -16,6 +16,7 @@ Commands:
   override-labels      List override labels in a schema
   plan-all             Build all possible query plans
   plan-one             Build a single optimized query plan
+  compare-plans        Compare two query plan JSON files (produced using the plan-one command)
   help                 Show this help message
 
 Common planner options:
@@ -37,6 +38,7 @@ Examples:
   qp-analyzer plan-all schema.graphql query.graphql --json
   qp-analyzer plan-one schema.graphql query.graphql --override-all
   qp-analyzer plan-one schema.graphql query.graphql labelA labelB
+  qp-analyzer compare-plans schema.graphql plan1.json plan2.json
   `);
 }
 
@@ -192,6 +194,47 @@ function handleBuildOnePlan(argv) {
   }
 }
 
+function handleComparePlans(argv) {
+  const { json, positional } = parsePlannerFlags(argv);
+  const schemaFile = positional[0];
+  const plan1File = positional[1];
+  const plan2File = positional[2];
+
+  if (!schemaFile || !plan1File || !plan2File) {
+    console.error('Usage: qp-analyzer compare-plans <schema-file> <plan1-file> <plan2-file> [--json]');
+    process.exit(1);
+  }
+
+  ensureFileExists('Schema', schemaFile);
+  ensureFileExists('Plan1', plan1File);
+  ensureFileExists('Plan2', plan2File);
+
+  const schema = fs.readFileSync(schemaFile, 'utf-8');
+  const plan1 = JSON.parse(fs.readFileSync(plan1File, 'utf-8'));
+  const plan2 = JSON.parse(fs.readFileSync(plan2File, 'utf-8'));
+
+  try {
+    const comparison = compare_plans(schema, plan1, plan2);
+    if (json) {
+      console.log(JSON.stringify(comparison, null, 2));
+    } else {
+      if (comparison == null) {
+        console.log('The two query plans are identical.');
+      } else {
+        console.log('The two query plans are different:');
+        console.log();
+        console.log('--- Full Diff ---');
+        console.log(comparison.full_diff);
+        console.log('--- Diff Description ---');
+        console.log(comparison.diff_description);
+      }
+    }
+  } catch (error) {
+    console.error('Error:', error);
+    process.exit(1);
+  }
+}
+
 // Main command routing
 if (args.length === 0 || args[0] === 'help' || args[0] === '-h' || args[0] === '--help') {
   printHelp();
@@ -212,6 +255,10 @@ switch (command) {
 
   case 'plan-one':
     handleBuildOnePlan(rest);
+    break;
+
+  case 'compare-plans':
+    handleComparePlans(rest);
     break;
 
   default:
