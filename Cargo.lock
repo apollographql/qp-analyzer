@@ -1020,7 +1020,7 @@ dependencies = [
 
 [[package]]
 name = "qp-analyzer"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "apollo-compiler",
  "apollo-federation",
@@ -1031,7 +1031,7 @@ dependencies = [
 
 [[package]]
 name = "qp-analyzer-cli"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "anyhow",
  "apollo-compiler",
@@ -1047,7 +1047,7 @@ dependencies = [
 
 [[package]]
 name = "qp-analyzer-wasm"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "apollo-federation",
  "getrandom",
