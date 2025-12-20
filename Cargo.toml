@@ -5,9 +5,12 @@ members = ["crates/analyzer", "crates/cli", "crates/wasm"]
 [workspace.dependencies]
 # Apollo dependencies
 apollo-compiler = "1.31"
-apollo-federation = "2.10"
+apollo-federation = { git = "https://github.com/apollographql/router", branch = "dev" }
 qp-compare = { git = "https://github.com/apollographql/qp-compare", branch = "main" }
 
 # Other dependencies
 tracing = "0.1"
 serde = "1.0"
+
+[patch.crates-io]
+apollo-federation = { git = "https://github.com/apollographql/router", branch = "dev" }

@@ -108,8 +108,7 @@ dependencies = [
 [[package]]
 name = "apollo-federation"
 version = "2.10.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "034b556462798d1f076d865791410c088fd549c920f2a5c0d83a0611141559b4"
+source = "git+https://github.com/apollographql/router?branch=dev#4a26abb282daf0bbdf213cafc3cc3dc60aa08621"
 dependencies = [
  "apollo-compiler",
  "derive_more",
@@ -1062,7 +1061,7 @@ dependencies = [
 [[package]]
 name = "qp-compare"
 version = "0.1.0"
-source = "git+https://github.com/apollographql/qp-compare?branch=main#9f4a9ef668972b5868e996c073043b8058178223"
+source = "git+https://github.com/apollographql/qp-compare?branch=main#97d3777d3c209934e9a7d337589992518e870ac7"
 dependencies = [
  "apollo-compiler",
  "apollo-federation",
