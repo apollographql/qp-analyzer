@@ -2,7 +2,7 @@
 name = "qp-analyzer-wasm"
 description = "Apollo Query Plan Analyzer compiled to WebAssembly"
 repository = "https://github.com/apollographql/qp-analyzer"
-version = "0.2.0"
+version = "0.2.1"
 edition = "2024"
 license = "Elastic-2.0"
 readme = "README.md"
