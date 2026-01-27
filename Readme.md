@@ -28,6 +28,17 @@ There are several other factors that can influence generated query plans as foll
 
 This tool uses [the same native query planner](https://www.apollographql.com/docs/graphos/routing/query-planning/native-query-planner) as Apollo Router versions 1.59 and up (also, 1.49~1.58 versions with the native query planner enabled).
 
+## NPM Release
+
+WASM-compiled NPM package is also availabled.
+
+Try
+```
+npx  @apollo/qp-analyzer
+```
+
+Link: [@apollo/qp-analyzer on NPM](https://www.npmjs.com/package/@apollo/qp-analyzer)
+
 ## Build
 
 Prerequisite: Rust toolchain (latest stable version recommended)
